@@ -1,13 +1,14 @@
 #!/usr/bin/env python3.3
 
+import os
+import sys
+import getopt
 import hmac
 import hashlib
 import urllib.request
+import urllib.parse
 import json
 import getpass
-import sys
-import getopt
-import time
 
 class blih:
     def __init__(self, baseurl='https://blih.epitech.eu/', user=None, token=None, async=True, verbose=False):
@@ -94,7 +95,7 @@ class blih:
         status, reason, headers, data = self.request('user/repositories/' + name + '/acl', method='POST', data=data)
         if self._verbose or status != 200:
             print (str(status) + ' ' + reason)
-        if status != 202:
+        if status != 200:
             sys.exit(1)
 
     def repo_getacl(self, name):
@@ -107,12 +108,38 @@ class blih:
         for i in list.keys():
             print (i + ':' + list[i])
 
+    def sshkey_upload(self, keyfile):
+        print ('Will try to upload key : ' + keyfile)
+        try:
+            f = open(keyfile, 'r')
+        except (PermissionError, FileNotFoundError):
+            print ("Can't open file : " + keyfile)
+            return
+        key = urllib.parse.quote(f.read().strip('\n'))
+        f.close()
+        data = {'sshkey' : key}
+        status, reason, headers, data = self.request('user/sshkey', method='POST', data=data)
+        if self._verbose or status != 200:
+            print (str(status) + ' ' + reason)
+        if status != 200:
+            sys.exit(1)
+
+    def sshkey_list(self):
+        status, reason, headers, data = self.request('user/sshkey', method='GET')
+        if self._verbose or status != 200:
+            print (str(status) + ' ' + reason)
+        if status != 200:
+            sys.exit(1)
+        sshkeys = json.loads(data.decode('utf8'))
+        for i in sshkeys.keys():
+            print (sshkeys[i] + ' ' + i)
+
 def usage_repository():
     print ('Usage: ' + sys.argv[0] + ' [options] repository command ...')
     print ()
     print ('Commands :')
-    print ('\tcreate reponame\t\t\t-- Create a repository named "reponame"')
-    print ('\tinfo\t\t\t\t-- Get the repository metadata')
+    print ('\tcreate repo\t\t\t-- Create a repository named "repo"')
+    print ('\tinfo repo\t\t\t-- Get the repository metadata')
     print ('\tgetacl repo\t\t\t-- Get the acls set for the repository')
     print ('\tlist\t\t\t\t-- List the repositories created')
     print ('\tsetacl repo user [acl]\t\t-- Set (or remove) an acl for "user" on "repo"')
@@ -127,20 +154,22 @@ def repository(args, baseurl, user, verbose, async):
         usage_repository()
     if args[0] == 'create':
         if len(args) != 2:
-            usage()
+            usage_repository()
         handle = blih(baseurl=baseurl, user=user, async=async, verbose=verbose)
         handle.repo_create(args[1])
     elif args[0] == 'list':
+        if len(args) != 1:
+            usage_repository()
         handle = blih(baseurl=baseurl, user=user, async=async, verbose=verbose)
         handle.repo_list()
     elif args[0] == 'info':
         if len(args) != 2:
-            usage()
+            usage_repository()
         handle = blih(baseurl=baseurl, user=user, async=async, verbose=verbose)
         handle.repo_info(args[1])
     elif args[0] == 'setacl':
         if len(args) != 4 and len(args) != 3:
-            usage()
+            usage_repository()
         if len(args) == 3:
             acl = ''
         else:
@@ -149,23 +178,46 @@ def repository(args, baseurl, user, verbose, async):
         handle.repo_setacl(args[1], args[2], acl)
     elif args[0] == 'getacl':
         if len(args) != 2:
-            usage()
+            usage_repository()
         handle = blih(baseurl=baseurl, user=user, async=async, verbose=verbose)
         handle.repo_getacl(args[1])
     else:
-        usage()
+        usage_repository()
+
+def usage_sshkey():
+    sys.exit(1)
+
+def sshkey(args, baseurl, user, verbose, async):
+    if len(args) == 0:
+        usage_sshkey()
+    if args[0] == 'list':
+        handle = blih(baseurl=baseurl, user=user, async=async, verbose=verbose)
+        handle.sshkey_list()
+    elif args[0] == 'upload':
+        key = None
+        if len(args) == 1:
+            key = os.getenv('HOME') + '/.ssh/id_rsa.pub'
+        elif len(args) == 2:
+            key = args[1]
+        else:
+            usage_sshkey()
+        handle = blih(baseurl=baseurl, user=user, async=async, verbose=verbose)
+        handle.sshkey_upload(key)
+    else:
+        usage_sshkey()
 
 def usage():
     print ('Usage: ' + sys.argv[0] + ' [options] command ...')
     print ()
     print ('Global Options :')
-    print ('\t-u user|--user=user\t\t-- Run as user')
-    print ('\t-v|--verbose\t\t\t-- Verbose')
-    print ('\t-b url|--baseurl=url\t\t-- Base URL for BLIH')
-    print ('\t-s|--sync\t\t\t-- Work in syncronous mode')
+    print ('\t-u user | --user=user\t\t-- Run as user')
+    print ('\t-v | --verbose\t\t\t-- Verbose')
+    print ('\t-b url | --baseurl=url\t\t-- Base URL for BLIH')
+    print ('\t-s | --sync\t\t\t-- Work in syncronous mode')
     print ()
     print ('Commands :')
     print ('\trepository\t\t\t-- Repository management')
+    print ('\tsshkey\t\t\t\t-- SSH-KEYS management')
     sys.exit(1)
 
 if __name__ == "__main__":
@@ -199,5 +251,7 @@ if __name__ == "__main__":
 
     if args[0] == 'repository':
         repository(args[1:], baseurl, user, verbose, async)
+    elif args[0] == 'sshkey':
+        sshkey(args[1:], baseurl, user, verbose, async)
     else:
         usage()
