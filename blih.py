@@ -81,6 +81,8 @@ class blih:
 
     def repo_list(self):
         status, reason, headers, data = self.request('user/repositories', method='GET')
+        if self._verbose or status != 200:
+            print (str(status) + ' ' + reason)
         if data:
             list = json.loads(data.decode('utf8'))
             for i in list['repositories']:
@@ -88,6 +90,8 @@ class blih:
 
     def repo_info(self, name):
         status, reason, headers, data = self.request('user/repositories/' + name, method='GET')
+        if self._verbose or status != 200:
+            print (str(status) + ' ' + reason)
         print (data)
 
     def repo_setacl(self, name, acluser, acl):
