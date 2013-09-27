@@ -109,7 +109,6 @@ class blih:
             print (i + ':' + list[i])
 
     def sshkey_upload(self, keyfile):
-        print ('Will try to upload key : ' + keyfile)
         try:
             f = open(keyfile, 'r')
         except (PermissionError, FileNotFoundError):
