@@ -185,6 +185,11 @@ def repository(args, baseurl, user, verbose, async):
         usage_repository()
 
 def usage_sshkey():
+    print ('Usage: ' + sys.argv[0] + ' [options] sshkey command ...')
+    print ()
+    print ('Commands :')
+    print ('\tupload [file]\t\t\t-- Upload a new ssh-key')
+    print ('\tlist\t\t\t\t-- List the ssh-keys')
     sys.exit(1)
 
 def sshkey(args, baseurl, user, verbose, async):
