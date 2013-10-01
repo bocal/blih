@@ -127,6 +127,14 @@ class blih:
         if status != 200:
             sys.exit(1)
 
+    def sshkey_delete(self, sshkey):
+        data = {'sshkey' : sshkey}
+        status, reason, headers, data = self.request('user/sshkey/' + sshkey, method='DELETE', data=data)
+        if self._verbose or status != 200:
+            print (str(status) + ' ' + reason)
+        if status != 200:
+            sys.exit(1)
+
     def sshkey_list(self):
         status, reason, headers, data = self.request('user/sshkey', method='GET')
         if self._verbose or status != 200:
@@ -193,6 +201,7 @@ def usage_sshkey():
     print ('Commands :')
     print ('\tupload [file]\t\t\t-- Upload a new ssh-key')
     print ('\tlist\t\t\t\t-- List the ssh-keys')
+    print ('\tdelete <sshkey>\t\t\t-- Delete the sshkey with comment <sshkey>')
     sys.exit(1)
 
 def sshkey(args, baseurl, user, verbose, async):
@@ -211,6 +220,11 @@ def sshkey(args, baseurl, user, verbose, async):
             usage_sshkey()
         handle = blih(baseurl=baseurl, user=user, async=async, verbose=verbose)
         handle.sshkey_upload(key)
+    elif args[0] == 'delete':
+        if len(args) != 2:
+            usage_sshkey()
+        handle = blih(baseurl=baseurl, user=user, async=async, verbose=verbose)
+        handle.sshkey_delete(args[1])
     else:
         usage_sshkey()
 
