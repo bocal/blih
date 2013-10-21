@@ -10,6 +10,8 @@ import urllib.parse
 import json
 import getpass
 
+version = 1.4
+
 class blih:
     def __init__(self, baseurl='https://blih.epitech.eu/', user=None, token=None, async=True, verbose=False):
         self._baseurl = baseurl
@@ -254,7 +256,7 @@ def usage():
 
 if __name__ == "__main__":
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hvsu:b:t:', ['help', 'verbose', 'sync', 'user=', 'baseurl=', 'token='])
+        opts, args = getopt.getopt(sys.argv[1:], 'hvsu:b:t:V', ['help', 'verbose', 'sync', 'user=', 'baseurl=', 'token=', 'version'])
     except getopt.GetoptError as e:
         print (e)
         usage()
@@ -278,6 +280,9 @@ if __name__ == "__main__":
             baseurl = a
         elif o in ('-t', '--token'):
             token = bytes(a, 'utf8')
+        elif o in ('-V', '--version'):
+            print ('blih version ' + str(version))
+            sys.exit(0)
         else:
             usage()
 
