@@ -10,7 +10,7 @@ import urllib.parse
 import json
 import getpass
 
-version = 1.4
+version = 1.6
 
 class blih:
     def __init__(self, baseurl='https://blih.epitech.eu/', user=None, token=None, verbose=False):
