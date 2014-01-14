@@ -17,7 +17,7 @@
 
 Name:           blih
 Version:        1
-Release:        6
+Release:        7
 License:        Bocal
 Summary:        Bocal Lightweight Interface for Humans
 Url:    http://repo.epitech.eu/opensuse/
