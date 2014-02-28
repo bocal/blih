@@ -57,4 +57,4 @@ cp blih.py %{buildroot}%{_bindir}/blih;
 * Fri Feb 28 2014 Emmanuel Vadot <elbarto@bocal.org> - 1.7-1
 - change arch to noarch
 - change licence to BSD-2-Clause
-- 
+- change group to Applications/Internet
