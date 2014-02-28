@@ -30,7 +30,7 @@ License:        BSD-2-Clause
 Summary:        Bocal Lightweight Interface for Humans
 BuildRequires:  python3
 BuildArch:      noarch
-Source0:        http://pkg.bocal.org/pub/%{name}/%{version}/%{name}-%{version}.tgz
+Source0:        ftp://ftp.bocal.org/pub/%{name}/%{version}/%{name}-%{version}.tgz
 Vendor:         Bocal
 Url:            http://www.bocal.org
 Group:          Applications/Internet
