@@ -39,6 +39,7 @@ import requests
 import json
 import getpass
 import urllib
+import logging
 
 __version__ = '1.7'
 
@@ -50,7 +51,11 @@ def sign_data(user, token, data=None):
     Calculate the signature
     """
     if token == None:
-        token = hashlib.sha512(bytes(getpass.getpass(), 'utf8')).hexdigest()
+        try:
+            token = hashlib.sha512(bytes(getpass.getpass(), 'utf8')).hexdigest()
+        except KeyboardInterrupt:
+            sys.exit(1)
+
     signature = hmac.new(bytes(token, 'utf8'), msg=bytes(user, 'utf8'), digestmod=hashlib.sha512)
     signed_data = {}
 
@@ -68,6 +73,8 @@ def blih_get(resource, user, token, data):
     """
     Wrapper around requests.get
     """
+
+    logger = logging.getLogger('blih')
     try:
         req = requests.get(
             URL + resource,
@@ -76,17 +83,17 @@ def blih_get(resource, user, token, data):
         )
         data = req.json()
     except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
-        print('Can\'t connect to ', URL)
+        logger.critical('Can\'t connect to %s', URL)
         sys.exit(1)
     except requests.exceptions.HTTPError:
-        print('An HTTP Error occured')
+        logger.critical('An HTTP Error occured')
         sys.exit(1)
 
     if req.status_code != 200:
         try:
-            print(data['error'])
+            logger.critical(data['error'])
         except KeyError:
-            print('Unknown error')
+            logger.critical('Unknown error')
         sys.exit(1)
 
     return data
@@ -95,6 +102,8 @@ def blih_post(resource, user, token, data):
     """
     Wrapper around requests.post
     """
+
+    logger = logging.getLogger('blih')
     try:
         req = requests.post(
             URL + resource,
@@ -107,17 +116,17 @@ def blih_post(resource, user, token, data):
         )
         data = req.json()
     except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
-        print('Can\'t connect to ', URL)
+        logger.critical('Can\'t connect to %s', URL)
         sys.exit(1)
     except requests.exceptions.HTTPError:
-        print('An HTTP Error occured')
+        logger.critical('An HTTP Error occured')
         sys.exit(1)
 
     if req.status_code != 200:
         try:
-            print(data['error'])
+            logger.critical(data['error'])
         except KeyError:
-            print('Unknown error')
+            logger.critical('Unknown error')
         sys.exit(1)
 
     return data
@@ -126,6 +135,8 @@ def blih_delete(resource, user, token, data):
     """
     Wrapper around requests.post
     """
+
+    logger = logging.getLogger('blih')
     try:
         req = requests.delete(
             URL + resource,
@@ -138,17 +149,17 @@ def blih_delete(resource, user, token, data):
         )
         data = req.json()
     except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
-        print('Can\'t connect to ', URL)
+        logger.critical('Can\'t connect to %s', URL)
         sys.exit(1)
     except requests.exceptions.HTTPError:
-        print('An HTTP Error occured')
+        logger.critical('An HTTP Error occured')
         sys.exit(1)
 
     if req.status_code != 200:
         try:
-            print(data['error'])
+            logger.critical(data['error'])
         except KeyError:
-            print('Unknown error')
+            logger.critical('Unknown error')
         sys.exit(1)
 
     return data
@@ -307,7 +318,8 @@ def main():
     parser.add_argument(
         '-v', '--verbose',
         help='Increase the verbosity level',
-        action='store_true'
+        action='count',
+        default=0
     )
 
     subparser = parser.add_subparsers(help='The main command')
@@ -395,6 +407,17 @@ def main():
     parser_sshkey_delete.set_defaults(func=sshkey_delete)
 
     argument = parser.parse_args()
+
+    if argument.verbose >= 5:
+        argument.verbose = 4
+
+    logging_level = int(50 - argument.verbose * 10)
+    logging.basicConfig(
+        stream=sys.stderr,
+        level=logging_level,
+        format='[%(levelname)s] : %(message)s'
+    )
+
     argument.func(argument)
 
 if __name__ == "__main__":
