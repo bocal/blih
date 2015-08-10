@@ -40,7 +40,8 @@ import json
 import getpass
 import urllib
 
-VERSION = 1.7
+__version__ = 1.7
+
 USER_AGENT = 'blih-' + str(VERSION)
 URL = 'https://blih.epitech.eu'
 
