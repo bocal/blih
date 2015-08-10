@@ -5,7 +5,7 @@
 # All rights reserved
 #
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted providing that the following conditions 
+# modification, are permitted providing that the following conditions
 # are met:
 # 1. Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
@@ -30,15 +30,14 @@ import sys
 import getopt
 import hmac
 import hashlib
-import urllib.request
-import urllib.parse
+import requests
 import json
 import getpass
 
 VERSION = 1.7
 USER_AGENT = 'blih-' + str(VERSION)
 
-class blih(object):
+class Blih(object):
     def __init__(self, baseurl='https://blih.epitech.eu/', user=None, token=None, verbose=False):
         self._baseurl = baseurl
         if token:
@@ -73,31 +72,29 @@ class blih(object):
 
         return signed_data
 
-    def request(self, resource, method='GET', content_type='application/json', data=None, url=None):
+    def request(self, resource, data=None):
         signed_data = self.sign_data(data)
 
-        if url:
-            req = urllib.request.Request(url=url, method=method, data=bytes(json.dumps(signed_data), 'utf8'))
-        else:
-            req = urllib.request.Request(url=self._baseurl + resource, method=method, data=bytes(json.dumps(signed_data), 'utf8'))
-        req.add_header('Content-Type', content_type)
-        req.add_header('User-Agent', USERAGENT)
+        headers = {
+            'User-Agent' : USER_AGENT,
+            'Content-Type' : 'application/json'
+            }
 
         try:
-            f = urllib.request.urlopen(req)
-        except urllib.error.HTTPError as e:
-            print('HTTP Error ' + str(e.code))
-            data = json.loads(e.read().decode('utf8'))
+            r = requests.get(self._baseurl + resource, headers=headers, data=json.dumps(signed_data))
+            r.json()
+        except:
+            data = r.json()
             print("Error message : '" + data['error'] + "'")
             sys.exit(1)
 
-        if f.status == 200:
+        if r.status_code == 200:
             try:
-                data = json.loads(f.read().decode('utf8'))
+                data = r.json()
             except:
                 print("Can't decode data, aborting")
                 sys.exit(1)
-            return (f.status, f.reason, f.info(), data)
+            return (data)
 
         print('Unknown error')
         sys.exit(1)
@@ -110,7 +107,7 @@ class blih(object):
         print(data['message'])
 
     def repo_list(self):
-        status, reason, headers, data = self.request('/repositories', method='GET')
+        data = self.request('/repositories')
         for i in data['repositories']:
             print(i)
 
@@ -172,28 +169,28 @@ def usage_repository():
     print('\t\t\t\t\ta for admin')
     sys.exit(1)
 
-def repository(args, baseurl, user, token, verbose,):
+def repository(args, baseurl, user, token, verbose):
     if len(args) == 0:
         usage_repository()
     if args[0] == 'create':
         if len(args) != 2:
             usage_repository()
-        handle = blih(baseurl=baseurl, user=user, token=token, verbose=verbose)
+        handle = Blih(baseurl=baseurl, user=user, token=token, verbose=verbose)
         handle.repo_create(args[1])
     elif args[0] == 'list':
         if len(args) != 1:
             usage_repository()
-        handle = blih(baseurl=baseurl, user=user, token=token, verbose=verbose)
+        handle = Blih(baseurl=baseurl, user=user, token=token, verbose=verbose)
         handle.repo_list()
     elif args[0] == 'info':
         if len(args) != 2:
             usage_repository()
-        handle = blih(baseurl=baseurl, user=user, token=token, verbose=verbose)
+        handle = Blih(baseurl=baseurl, user=user, token=token, verbose=verbose)
         handle.repo_info(args[1])
     elif args[0] == 'delete':
         if len(args) != 2:
             usage_repository()
-        handle = blih(baseurl=baseurl, user=user, token=token, verbose=verbose)
+        handle = Blih(baseurl=baseurl, user=user, token=token, verbose=verbose)
         handle.repo_delete(args[1])
     elif args[0] == 'setacl':
         if len(args) != 4 and len(args) != 3:
@@ -202,12 +199,12 @@ def repository(args, baseurl, user, token, verbose,):
             acl = ''
         else:
             acl = args[3]
-        handle = blih(baseurl=baseurl, user=user, token=token, verbose=verbose)
+        handle = Blih(baseurl=baseurl, user=user, token=token, verbose=verbose)
         handle.repo_setacl(args[1], args[2], acl)
     elif args[0] == 'getacl':
         if len(args) != 2:
             usage_repository()
-        handle = blih(baseurl=baseurl, user=user, token=token, verbose=verbose)
+        handle = Blih(baseurl=baseurl, user=user, token=token, verbose=verbose)
         handle.repo_getacl(args[1])
     else:
         usage_repository()
@@ -225,7 +222,7 @@ def sshkey(args, baseurl, user, token, verbose, user_agent):
     if len(args) == 0:
         usage_sshkey()
     if args[0] == 'list':
-        handle = blih(baseurl=baseurl, user=user, token=token, verbose=verbose)
+        handle = Blih(baseurl=baseurl, user=user, token=token, verbose=verbose)
         handle.sshkey_list()
     elif args[0] == 'upload':
         key = None
@@ -235,18 +232,18 @@ def sshkey(args, baseurl, user, token, verbose, user_agent):
             key = args[1]
         else:
             usage_sshkey()
-        handle = blih(baseurl=baseurl, user=user, token=token, verbose=verbose)
+        handle = Blih(baseurl=baseurl, user=user, token=token, verbose=verbose)
         handle.sshkey_upload(key)
     elif args[0] == 'delete':
         if len(args) != 2:
             usage_sshkey()
-        handle = blih(baseurl=baseurl, user=user, token=token, verbose=verbose)
+        handle = Blih(baseurl=baseurl, user=user, token=token, verbose=verbose)
         handle.sshkey_delete(args[1])
     else:
         usage_sshkey()
 
 def whoami(args, baseurl, user, token, verbose, user_agent):
-    handle = blih(baseurl=baseurl, user=user, token=token, verbose=verbose)
+    handle = Blih(baseurl=baseurl, user=user, token=token, verbose=verbose)
     handle.whoami()
 
 def usage():
