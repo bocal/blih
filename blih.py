@@ -86,20 +86,20 @@ class blih:
         try:
             f = urllib.request.urlopen(req)
         except urllib.error.HTTPError as e:
-            print ('HTTP Error ' + str(e.code))
+            print('HTTP Error ' + str(e.code))
             data = json.loads(e.read().decode('utf8'))
-            print ("Error message : '" + data['error'] + "'")
+            print("Error message : '" + data['error'] + "'")
             sys.exit(1)
 
         if f.status == 200:
             try:
                 data = json.loads(f.read().decode('utf8'))
             except:
-                print ("Can't decode data, aborting")
+                print("Can't decode data, aborting")
                 sys.exit(1)
             return (f.status, f.reason, f.info(), data)
 
-        print ('Unknown error')
+        print('Unknown error')
         sys.exit(1)
 
     def repo_create(self, name, type='git', description=None):
@@ -107,69 +107,69 @@ class blih:
         if description:
             data['description'] = description
         status, reason, headers, data = self.request('/repositories', method='POST', data=data)
-        print (data['message'])
+        print(data['message'])
 
     def repo_list(self):
         status, reason, headers, data = self.request('/repositories', method='GET')
         for i in data['repositories']:
-            print (i)
+            print(i)
 
     def repo_delete(self, name):
         status, reason, headers, data = self.request('/repository/' + name, method='DELETE')
-        print (data['message'])
+        print(data['message'])
 
     def repo_info(self, name):
         status, reason, headers, data = self.request('/repository/' + name, method='GET')
-        print (data['message'])
+        print(data['message'])
 
     def repo_setacl(self, name, acluser, acl):
         data = {'user' : acluser, 'acl' : acl}
         status, reason, headers, data = self.request('/repository/' + name + '/acls', method='POST', data=data)
-        print (data['message'])
+        print(data['message'])
 
     def repo_getacl(self, name):
         status, reason, headers, data = self.request('/repository/' + name + '/acls', method='GET')
         for i in data.keys():
-            print (i + ':' + data[i])
+            print(i + ':' + data[i])
 
     def sshkey_upload(self, keyfile):
         try:
             f = open(keyfile, 'r')
         except (PermissionError, FileNotFoundError):
-            print ("Can't open file : " + keyfile)
+            print("Can't open file : " + keyfile)
             return
         key = urllib.parse.quote(f.read().strip('\n'))
         f.close()
         data = {'sshkey' : key}
         status, reason, headers, data = self.request('/sshkeys', method='POST', data=data)
-        print (data['message'])
+        print(data['message'])
 
     def sshkey_delete(self, sshkey):
         status, reason, headers, data = self.request('/sshkey/' + sshkey, method='DELETE')
-        print (data['message'])
+        print(data['message'])
 
     def sshkey_list(self):
         status, reason, headers, data = self.request('/sshkeys', method='GET')
         for i in data.keys():
-            print (data[i] + ' ' + i)
+            print(data[i] + ' ' + i)
 
     def whoami(self):
         status, reason, headers, data = self.request('/whoami', method='GET')
-        print (data['message'])
+        print(data['message'])
 
 def usage_repository():
-    print ('Usage: ' + sys.argv[0] + ' [options] repository command ...')
-    print ()
-    print ('Commands :')
-    print ('\tcreate repo\t\t\t-- Create a repository named "repo"')
-    print ('\tinfo repo\t\t\t-- Get the repository metadata')
-    print ('\tgetacl repo\t\t\t-- Get the acls set for the repository')
-    print ('\tlist\t\t\t\t-- List the repositories created')
-    print ('\tsetacl repo user [acl]\t\t-- Set (or remove) an acl for "user" on "repo"')
-    print ('\t\t\t\t\tACL format:')
-    print ('\t\t\t\t\tr for read')
-    print ('\t\t\t\t\tw for write')
-    print ('\t\t\t\t\ta for admin')
+    print('Usage: ' + sys.argv[0] + ' [options] repository command ...')
+    print()
+    print('Commands :')
+    print('\tcreate repo\t\t\t-- Create a repository named "repo"')
+    print('\tinfo repo\t\t\t-- Get the repository metadata')
+    print('\tgetacl repo\t\t\t-- Get the acls set for the repository')
+    print('\tlist\t\t\t\t-- List the repositories created')
+    print('\tsetacl repo user [acl]\t\t-- Set (or remove) an acl for "user" on "repo"')
+    print('\t\t\t\t\tACL format:')
+    print('\t\t\t\t\tr for read')
+    print('\t\t\t\t\tw for write')
+    print('\t\t\t\t\ta for admin')
     sys.exit(1)
 
 def repository(args, baseurl, user, token, verbose, user_agent):
@@ -213,12 +213,12 @@ def repository(args, baseurl, user, token, verbose, user_agent):
         usage_repository()
 
 def usage_sshkey():
-    print ('Usage: ' + sys.argv[0] + ' [options] sshkey command ...')
-    print ()
-    print ('Commands :')
-    print ('\tupload [file]\t\t\t-- Upload a new ssh-key')
-    print ('\tlist\t\t\t\t-- List the ssh-keys')
-    print ('\tdelete <sshkey>\t\t\t-- Delete the sshkey with comment <sshkey>')
+    print('Usage: ' + sys.argv[0] + ' [options] sshkey command ...')
+    print()
+    print('Commands :')
+    print('\tupload [file]\t\t\t-- Upload a new ssh-key')
+    print('\tlist\t\t\t\t-- List the ssh-keys')
+    print('\tdelete <sshkey>\t\t\t-- Delete the sshkey with comment <sshkey>')
     sys.exit(1)
 
 def sshkey(args, baseurl, user, token, verbose, user_agent):
@@ -250,25 +250,25 @@ def whoami(args, baseurl, user, token, verbose, user_agent):
     handle.whoami()
 
 def usage():
-    print ('Usage: ' + sys.argv[0] + ' [options] command ...')
-    print ()
-    print ('Global Options :')
-    print ('\t-u user | --user=user\t\t-- Run as user')
-    print ('\t-v | --verbose\t\t\t-- Verbose')
-    print ('\t-b url | --baseurl=url\t\t-- Base URL for BLIH')
-    print ('\t-t | --token\t\t\t-- Specify token in the cmdline')
-    print ()
-    print ('Commands :')
-    print ('\trepository\t\t\t-- Repository management')
-    print ('\tsshkey\t\t\t\t-- SSH-KEYS management')
-    print ('\twhoami\t\t\t\t-- Print who you are')
+    print('Usage: ' + sys.argv[0] + ' [options] command ...')
+    print()
+    print('Global Options :')
+    print('\t-u user | --user=user\t\t-- Run as user')
+    print('\t-v | --verbose\t\t\t-- Verbose')
+    print('\t-b url | --baseurl=url\t\t-- Base URL for BLIH')
+    print('\t-t | --token\t\t\t-- Specify token in the cmdline')
+    print()
+    print('Commands :')
+    print('\trepository\t\t\t-- Repository management')
+    print('\tsshkey\t\t\t\t-- SSH-KEYS management')
+    print('\twhoami\t\t\t\t-- Print who you are')
     sys.exit(1)
 
 if __name__ == "__main__":
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'hvu:b:t:VU:', ['help', 'verbose', 'user=', 'baseurl=', 'token=', 'version', 'useragent='])
     except getopt.GetoptError as e:
-        print (e)
+        print(e)
         usage()
 
     verbose = False
@@ -289,7 +289,7 @@ if __name__ == "__main__":
         elif o in ('-t', '--token'):
             token = bytes(a, 'utf8')
         elif o in ('-V', '--version'):
-            print ('blih version ' + str(version))
+            print('blih version ' + str(version))
             sys.exit(0)
         elif o in ('-U', '--useragent'):
             user_agent = a
