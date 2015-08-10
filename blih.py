@@ -40,9 +40,9 @@ import json
 import getpass
 import urllib
 
-__version__ = 1.7
+__version__ = '1.7'
 
-USER_AGENT = 'blih-' + str(VERSION)
+USER_AGENT = 'blih-' + __version__
 URL = 'https://blih.epitech.eu'
 
 def sign_data(user, token, data=None):
