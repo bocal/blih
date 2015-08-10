@@ -1,7 +1,7 @@
-#!/usr/bin/env python3.3
+#!/usr/bin/env python3
 
 #-
-# Copyright 2013-2014 Emmanuel Vadot <elbarto@bocal.org>
+# Copyright 2013-2015 Emmanuel Vadot <elbarto@bocal.org>
 # All rights reserved
 #
 # Redistribution and use in source and binary forms, with or without
@@ -35,10 +35,11 @@ import urllib.parse
 import json
 import getpass
 
-version = 1.7
+VERSION = 1.7
+USER_AGENT = 'blih-' + str(VERSION)
 
-class blih:
-    def __init__(self, baseurl='https://blih.epitech.eu/', user=None, token=None, verbose=False, user_agent='blih-' + str(version)):
+class blih(object):
+    def __init__(self, baseurl='https://blih.epitech.eu/', user=None, token=None, verbose=False):
         self._baseurl = baseurl
         if token:
             self._token = token
@@ -49,7 +50,6 @@ class blih:
         else:
             self._user = user
         self._verbose = verbose
-        self._useragent = user_agent
 
     def token_get(self):
         return self._token
@@ -81,7 +81,7 @@ class blih:
         else:
             req = urllib.request.Request(url=self._baseurl + resource, method=method, data=bytes(json.dumps(signed_data), 'utf8'))
         req.add_header('Content-Type', content_type)
-        req.add_header('User-Agent', self._useragent)
+        req.add_header('User-Agent', USERAGENT)
 
         try:
             f = urllib.request.urlopen(req)
@@ -172,28 +172,28 @@ def usage_repository():
     print('\t\t\t\t\ta for admin')
     sys.exit(1)
 
-def repository(args, baseurl, user, token, verbose, user_agent):
+def repository(args, baseurl, user, token, verbose,):
     if len(args) == 0:
         usage_repository()
     if args[0] == 'create':
         if len(args) != 2:
             usage_repository()
-        handle = blih(baseurl=baseurl, user=user, token=token, verbose=verbose, user_agent=user_agent)
+        handle = blih(baseurl=baseurl, user=user, token=token, verbose=verbose)
         handle.repo_create(args[1])
     elif args[0] == 'list':
         if len(args) != 1:
             usage_repository()
-        handle = blih(baseurl=baseurl, user=user, token=token, verbose=verbose, user_agent=user_agent)
+        handle = blih(baseurl=baseurl, user=user, token=token, verbose=verbose)
         handle.repo_list()
     elif args[0] == 'info':
         if len(args) != 2:
             usage_repository()
-        handle = blih(baseurl=baseurl, user=user, token=token, verbose=verbose, user_agent=user_agent)
+        handle = blih(baseurl=baseurl, user=user, token=token, verbose=verbose)
         handle.repo_info(args[1])
     elif args[0] == 'delete':
         if len(args) != 2:
             usage_repository()
-        handle = blih(baseurl=baseurl, user=user, token=token, verbose=verbose, user_agent=user_agent)
+        handle = blih(baseurl=baseurl, user=user, token=token, verbose=verbose)
         handle.repo_delete(args[1])
     elif args[0] == 'setacl':
         if len(args) != 4 and len(args) != 3:
@@ -202,12 +202,12 @@ def repository(args, baseurl, user, token, verbose, user_agent):
             acl = ''
         else:
             acl = args[3]
-        handle = blih(baseurl=baseurl, user=user, token=token, verbose=verbose, user_agent=user_agent)
+        handle = blih(baseurl=baseurl, user=user, token=token, verbose=verbose)
         handle.repo_setacl(args[1], args[2], acl)
     elif args[0] == 'getacl':
         if len(args) != 2:
             usage_repository()
-        handle = blih(baseurl=baseurl, user=user, token=token, verbose=verbose, user_agent=user_agent)
+        handle = blih(baseurl=baseurl, user=user, token=token, verbose=verbose)
         handle.repo_getacl(args[1])
     else:
         usage_repository()
@@ -225,7 +225,7 @@ def sshkey(args, baseurl, user, token, verbose, user_agent):
     if len(args) == 0:
         usage_sshkey()
     if args[0] == 'list':
-        handle = blih(baseurl=baseurl, user=user, token=token, verbose=verbose, user_agent=user_agent)
+        handle = blih(baseurl=baseurl, user=user, token=token, verbose=verbose)
         handle.sshkey_list()
     elif args[0] == 'upload':
         key = None
@@ -235,18 +235,18 @@ def sshkey(args, baseurl, user, token, verbose, user_agent):
             key = args[1]
         else:
             usage_sshkey()
-        handle = blih(baseurl=baseurl, user=user, token=token, verbose=verbose, user_agent=user_agent)
+        handle = blih(baseurl=baseurl, user=user, token=token, verbose=verbose)
         handle.sshkey_upload(key)
     elif args[0] == 'delete':
         if len(args) != 2:
             usage_sshkey()
-        handle = blih(baseurl=baseurl, user=user, token=token, verbose=verbose, user_agent=user_agent)
+        handle = blih(baseurl=baseurl, user=user, token=token, verbose=verbose)
         handle.sshkey_delete(args[1])
     else:
         usage_sshkey()
 
 def whoami(args, baseurl, user, token, verbose, user_agent):
-    handle = blih(baseurl=baseurl, user=user, token=token, verbose=verbose, user_agent=user_agent)
+    handle = blih(baseurl=baseurl, user=user, token=token, verbose=verbose)
     handle.whoami()
 
 def usage():
@@ -266,7 +266,7 @@ def usage():
 
 if __name__ == "__main__":
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hvu:b:t:VU:', ['help', 'verbose', 'user=', 'baseurl=', 'token=', 'version', 'useragent='])
+        opts, args = getopt.getopt(sys.argv[1:], 'hvu:b:t:VU:', ['help', 'verbose', 'user=', 'baseurl=', 'token=', 'version'])
     except getopt.GetoptError as e:
         print(e)
         usage()
@@ -275,7 +275,6 @@ if __name__ == "__main__":
     user = None
     baseurl = 'https://blih.epitech.eu/'
     token = None
-    user_agent = 'blih-' + str(version)
 
     for o, a in opts:
         if o in ('-h', '--help'):
@@ -291,8 +290,6 @@ if __name__ == "__main__":
         elif o in ('-V', '--version'):
             print('blih version ' + str(version))
             sys.exit(0)
-        elif o in ('-U', '--useragent'):
-            user_agent = a
         else:
             usage()
 
@@ -300,10 +297,10 @@ if __name__ == "__main__":
         usage()
 
     if args[0] == 'repository':
-        repository(args[1:], baseurl, user, token, verbose, user_agent)
+        repository(args[1:], baseurl, user, token, verbose)
     elif args[0] == 'sshkey':
-        sshkey(args[1:], baseurl, user, token, verbose, user_agent)
+        sshkey(args[1:], baseurl, user, token, verbose)
     elif args[0] == 'whoami':
-        whoami(args[1:], baseurl, user, token, verbose, user_agent)
+        whoami(args[1:], baseurl, user, token, verbose)
     else:
         usage()
