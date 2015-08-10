@@ -243,12 +243,12 @@ def sshkey_upload(args):
     Upload a new sshkey
     """
     try:
-        f = open(args.keyfile, 'r')
+        handle = open(args.keyfile, 'r')
     except (PermissionError, FileNotFoundError):
-        print ("Can't open file : " + args.keyfile)
+        print("Can't open file : " + args.keyfile)
         sys.exit(1)
-    key = urllib.parse.quote(f.read().strip('\n'))
-    f.close()
+    key = urllib.parse.quote(handle.read().strip('\n'))
+    handle.close()
     data = blih_post(
         '/sshkeys',
         args.user,
@@ -270,7 +270,7 @@ def sshkey_list(args):
         None
     )
 
-    for comment,key in data.items():
+    for comment, key in data.items():
         print(key, comment)
 
 def sshkey_delete(args):
