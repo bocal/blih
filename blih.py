@@ -29,13 +29,16 @@
 Bocal Lightweight Interface for Humans
 """
 
+import sys
+import os
+
 from argparse import ArgumentParser
 import hmac
 import hashlib
 import requests
 import json
 import getpass
-import sys
+import urllib
 
 VERSION = 1.7
 USER_AGENT = 'blih-' + str(VERSION)
@@ -235,6 +238,56 @@ def repository_setacl(args):
     if data['message']:
         print(data['message'])
 
+def sshkey_upload(args):
+    """
+    Upload a new sshkey
+    """
+    try:
+        f = open(args.keyfile, 'r')
+    except (PermissionError, FileNotFoundError):
+        print ("Can't open file : " + args.keyfile)
+        sys.exit(1)
+    key = urllib.parse.quote(f.read().strip('\n'))
+    f.close()
+    data = blih_post(
+        '/sshkeys',
+        args.user,
+        args.token,
+        {'sshkey' : key}
+    )
+
+    if data['message']:
+        print(data['message'])
+
+def sshkey_list(args):
+    """
+    List the sshkeys
+    """
+    data = blih_get(
+        '/sshkeys',
+        args.user,
+        args.token,
+        None
+    )
+
+    for comment,key in data.items():
+        print(key, comment)
+
+def sshkey_delete(args):
+    """
+    Delete a sshkey
+    """
+    data = blih_delete(
+        '/sshkey/' + args.comment,
+        args.user,
+        args.token,
+        None
+    )
+
+    if data['message']:
+        print(data['message'])
+
+#pylint: disable=R0914
 def main():
     """
     Main entry point
@@ -309,10 +362,36 @@ def main():
     parser_repo_setacl.add_argument('acl', help='The acl (r or w)')
     parser_repo_setacl.set_defaults(func=repository_setacl)
 
-    #parser_sshkey = subparser.add_parser(
-    #    'sshkey',
-    #    help='Manage your sshkey'
-    #)
+    parser_sshkey = subparser.add_parser(
+        'sshkey',
+        help='Manage your sshkey'
+    )
+    subparser_sshkey = parser_sshkey.add_subparsers()
+
+    parser_sshkey_upload = subparser_sshkey.add_parser(
+        'upload',
+        help='Upload a new sshkey'
+    )
+    parser_sshkey_upload.add_argument(
+        'keyfile',
+        help='The sshkey file to upload',
+        nargs='?',
+        default=os.getenv('HOME') + '/.ssh/id_rsa.pub'
+    )
+    parser_sshkey_upload.set_defaults(func=sshkey_upload)
+
+    parser_sshkey_list = subparser_sshkey.add_parser(
+        'list',
+        help='List your sshkey(s)'
+    )
+    parser_sshkey_list.set_defaults(func=sshkey_list)
+
+    parser_sshkey_delete = subparser_sshkey.add_parser(
+        'delete',
+        help='Delete a sshkey'
+    )
+    parser_sshkey_delete.add_argument('comment', help='The comment of the sshkey file to delete')
+    parser_sshkey_delete.set_defaults(func=sshkey_delete)
 
     argument = parser.parse_args()
     argument.func(argument)
