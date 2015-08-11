@@ -112,9 +112,9 @@ def repository_create(args):
     data = blih(
         'post',
         '/repositories',
-        args.user,
-        args.token,
-        {'name' : args.name, 'type' : 'git'}
+        args['user'],
+        args['token'],
+        {'name' : args['name'], 'type' : 'git'}
     )
 
     if data['message']:
@@ -127,9 +127,9 @@ def repository_delete(args):
     """
     data = blih(
         'delete',
-        '/repository/' + args.name,
-        args.user,
-        args.token,
+        '/repository/' + args['name'],
+        args['user'],
+        args['token'],
         None
     )
 
@@ -142,9 +142,9 @@ def repository_info(args):
     """
     data = blih(
         'get',
-        '/repository/' + args.name,
-        args.user,
-        args.token,
+        '/repository/' + args['name'],
+        args['user'],
+        args['token'],
         None
     )
 
@@ -158,8 +158,8 @@ def repository_list(args):
     data = blih(
         'get',
         '/repositories',
-        args.user,
-        args.token,
+        args['user'],
+        args['token'],
         None
     )
 
@@ -172,9 +172,9 @@ def repository_getacl(args):
     """
     data = blih(
         'get',
-        '/repository/' + args.name + '/acls',
-        args.user,
-        args.token,
+        '/repository/' + args['name'] + '/acls',
+        args['user'],
+        args['token'],
         None
     )
 
@@ -185,13 +185,12 @@ def repository_setacl(args):
     """
     Set some acls on one repository
     """
-    print('repository setacl ' + str(args))
     data = blih(
         'post',
-        '/repository/' + args.name + '/acls',
-        args.user,
-        args.token,
-        data={'user' : args.user_acl, 'acl' : args.acl}
+        '/repository/' + args['name'] + '/acls',
+        args['user'],
+        args['token'],
+        data={'user' : args['user_acl'], 'acl' : args['acl']}
     )
 
     if data['message']:
@@ -202,17 +201,17 @@ def sshkey_upload(args):
     Upload a new sshkey
     """
     try:
-        handle = open(args.keyfile, 'r')
+        handle = open(args['keyfile'], 'r')
     except (PermissionError, FileNotFoundError):
-        print("Can't open file : " + args.keyfile)
+        print("Can't open file : " + args['keyfile'])
         sys.exit(1)
     key = urllib.parse.quote(handle.read().strip('\n'))
     handle.close()
     data = blih(
         'post',
         '/sshkeys',
-        args.user,
-        args.token,
+        args['user'],
+        args['token'],
         {'sshkey' : key}
     )
 
@@ -226,8 +225,8 @@ def sshkey_list(args):
     data = blih(
         'get',
         '/sshkeys',
-        args.user,
-        args.token,
+        args['user'],
+        args['token'],
         None
     )
 
@@ -240,9 +239,9 @@ def sshkey_delete(args):
     """
     data = blih(
         'delete',
-        '/sshkey/' + args.comment,
-        args.user,
-        args.token,
+        '/sshkey/' + args['comment'],
+        args['user'],
+        args['token'],
         None
     )
 
@@ -368,7 +367,7 @@ def main():
         format='[%(levelname)s] : %(message)s'
     )
 
-    argument.func(argument)
+    argument.func(vars(argument))
 
 if __name__ == "__main__":
     main()
