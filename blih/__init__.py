@@ -109,6 +109,7 @@ def repository_create(args):
     """
     Create a repository
     """
+    print(args)
     data = blih(
         'post',
         '/repositories',
@@ -271,14 +272,19 @@ def main():
         default=0
     )
 
-    subparser = parser.add_subparsers(help='The main command')
+    subparser = parser.add_subparsers(dest='command', help='The main command')
+    subparser.required = True
 
     # Create the subparser for the repository argument
     parser_repository = subparser.add_parser(
         'repository',
         help='Manage your repository'
     )
-    subparser_repository = parser_repository.add_subparsers()
+    subparser_repository = parser_repository.add_subparsers(
+        dest='subcommand',
+        help='The subcommand'
+    )
+    subparser_repository.required = True
 
     # Create the subparser for the repository create command
     parser_repo_create = subparser_repository.add_parser(
@@ -328,7 +334,11 @@ def main():
         'sshkey',
         help='Manage your sshkey'
     )
-    subparser_sshkey = parser_sshkey.add_subparsers()
+    subparser_sshkey = parser_sshkey.add_subparsers(
+        dest='subcommand',
+        help='The sshkey subcommand'
+    )
+    subparser_sshkey.required = True
 
     parser_sshkey_upload = subparser_sshkey.add_parser(
         'upload',
@@ -368,6 +378,3 @@ def main():
     )
 
     argument.func(vars(argument))
-
-if __name__ == "__main__":
-    main()
