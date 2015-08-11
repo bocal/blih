@@ -8,18 +8,15 @@ Usage:
  usage: blih [-h] [-u USER] [-t TOKEN] [-v] {repository,sshkey} ...
  
  positional arguments:
-   {repository,sshkey}   The main command
-   
-     repository          Manage your repository
-     
-     sshkey              Manage your sshkey
+ {repository,sshkey}   The main command
+ repository          Manage your repository
+ sshkey              Manage your sshkey
  
  optional arguments:
-   -h, --help            show this help message and exit
-   -u USER, --user USER  The user
-   -t TOKEN, --token TOKEN
-                         Specify the token on the command line
-   -v, --verbose         Increase the verbosity level
+ -h, --help            show this help message and exit
+ -u USER, --user USER  The user
+ -t TOKEN, --token TOKEN Specify the token on the command line
+ -v, --verbose         Increase the verbosity level
 
 Repository :
 
