@@ -1,5 +1,5 @@
-BLIH - Bocal Lightweight Interface
-==================================
+BLIH - Bocal Lightweight Interface for Humans
+=============================================
 
 Script for using the bocal api (BLIH).
 
