@@ -35,7 +35,6 @@ import os
 from argparse import ArgumentParser
 import hmac
 import hashlib
-import requests
 import json
 import getpass
 import urllib
@@ -73,8 +72,13 @@ def blih(method, resource, user, token, data):
     """
     Wrapper around requests
     """
-
     logger = logging.getLogger('blih')
+    try:
+        import requests
+    except ImportError:
+        logger.critical('requests is required.')
+        sys.exit(1)
+
     try:
         requests_method = getattr(requests, method)
         req = requests_method(
