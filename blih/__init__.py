@@ -109,7 +109,6 @@ def repository_create(args):
     """
     Create a repository
     """
-    print(args)
     data = blih(
         'post',
         '/repositories',
