@@ -69,83 +69,24 @@ def sign_data(user, token, data=None):
 
     return signed_data
 
-def blih_get(resource, user, token, data):
+def blih(method, resource, user, token, data):
     """
-    Wrapper around requests.get
-    """
-
-    logger = logging.getLogger('blih')
-    try:
-        req = requests.get(
-            URL + resource,
-            headers={'User-Agent' : USER_AGENT, 'Content-Type' : 'application/json'},
-            data=json.dumps(sign_data(user, token, data=data))
-        )
-        data = req.json()
-    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
-        logger.critical('Can\'t connect to %s', URL)
-        sys.exit(1)
-    except requests.exceptions.HTTPError:
-        logger.critical('An HTTP Error occured')
-        sys.exit(1)
-
-    if req.status_code != 200:
-        try:
-            logger.critical(data['error'])
-        except KeyError:
-            logger.critical('Unknown error')
-        sys.exit(1)
-
-    return data
-
-def blih_post(resource, user, token, data):
-    """
-    Wrapper around requests.post
+    Wrapper around requests
     """
 
     logger = logging.getLogger('blih')
     try:
-        req = requests.post(
+        requests_method = getattr(requests, method)
+        req = requests_method(
             URL + resource,
             headers={'User-Agent' : USER_AGENT, 'Content-Type' : 'application/json'},
-            data=json.dumps(sign_data(
-                user,
-                token,
-                data=data
-            ))
-        )
-        data = req.json()
-    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
-        logger.critical('Can\'t connect to %s', URL)
-        sys.exit(1)
-    except requests.exceptions.HTTPError:
-        logger.critical('An HTTP Error occured')
-        sys.exit(1)
-
-    if req.status_code != 200:
-        try:
-            logger.critical(data['error'])
-        except KeyError:
-            logger.critical('Unknown error')
-        sys.exit(1)
-
-    return data
-
-def blih_delete(resource, user, token, data):
-    """
-    Wrapper around requests.post
-    """
-
-    logger = logging.getLogger('blih')
-    try:
-        req = requests.delete(
-            URL + resource,
-            headers={'User-Agent' : USER_AGENT, 'Content-Type' : 'application/json'},
-            data=json.dumps(sign_data(
-                user,
-                token,
-                data=data
-            ))
+            data=json.dumps(
+                sign_data(
+                    user,
+                    token,
+                    data=data
+                )
+            )
         )
         data = req.json()
     except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
@@ -168,7 +109,8 @@ def repository_create(args):
     """
     Create a repository
     """
-    data = blih_post(
+    data = blih(
+        'post',
         '/repositories',
         args.user,
         args.token,
@@ -183,7 +125,8 @@ def repository_delete(args):
     """
     Delete a repository
     """
-    data = blih_delete(
+    data = blih(
+        'delete',
         '/repository/' + args.name,
         args.user,
         args.token,
@@ -197,7 +140,8 @@ def repository_info(args):
     """
     Get some info about a repository
     """
-    data = blih_get(
+    data = blih(
+        'get',
         '/repository/' + args.name,
         args.user,
         args.token,
@@ -211,7 +155,8 @@ def repository_list(args):
     """
     List the users repositories
     """
-    data = blih_get(
+    data = blih(
+        'get',
         '/repositories',
         args.user,
         args.token,
@@ -225,7 +170,8 @@ def repository_getacl(args):
     """
     Get the defined acls for one repo
     """
-    data = blih_get(
+    data = blih(
+        'get',
         '/repository/' + args.name + '/acls',
         args.user,
         args.token,
@@ -240,7 +186,8 @@ def repository_setacl(args):
     Set some acls on one repository
     """
     print('repository setacl ' + str(args))
-    data = blih_post(
+    data = blih(
+        'post',
         '/repository/' + args.name + '/acls',
         args.user,
         args.token,
@@ -261,7 +208,8 @@ def sshkey_upload(args):
         sys.exit(1)
     key = urllib.parse.quote(handle.read().strip('\n'))
     handle.close()
-    data = blih_post(
+    data = blih(
+        'post',
         '/sshkeys',
         args.user,
         args.token,
@@ -275,7 +223,8 @@ def sshkey_list(args):
     """
     List the sshkeys
     """
-    data = blih_get(
+    data = blih(
+        'get',
         '/sshkeys',
         args.user,
         args.token,
@@ -289,7 +238,8 @@ def sshkey_delete(args):
     """
     Delete a sshkey
     """
-    data = blih_delete(
+    data = blih(
+        'delete',
         '/sshkey/' + args.comment,
         args.user,
         args.token,
