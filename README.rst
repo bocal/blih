@@ -9,7 +9,9 @@ Usage:
  
  positional arguments:
    {repository,sshkey}   The main command
+   
      repository          Manage your repository
+     
      sshkey              Manage your sshkey
  
  optional arguments:
