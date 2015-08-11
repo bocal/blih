@@ -3,22 +3,23 @@ BLIH - Bocal Lightweight Interface for Humans
 
 Script for using the bocal api (BLIH).
 
-Usage:
+Usage::
 
  usage: blih [-h] [-u USER] [-t TOKEN] [-v] {repository,sshkey} ...
  
  positional arguments:
- {repository,sshkey}   The main command
- repository          Manage your repository
- sshkey              Manage your sshkey
+   {repository,sshkey}   The main command
+     repository          Manage your repository
+     sshkey              Manage your sshkey
  
  optional arguments:
- -h, --help            show this help message and exit
- -u USER, --user USER  The user
- -t TOKEN, --token TOKEN Specify the token on the command line
- -v, --verbose         Increase the verbosity level
+   -h, --help            show this help message and exit
+   -u USER, --user USER  The user
+   -t TOKEN, --token TOKEN
+                         Specify the token on the command line
+   -v, --verbose         Increase the verbosity level
 
-Repository :
+Repository ::
 
  usage: blih repository [-h] {create,delete,info,list,getacl,setacl} ...
  
@@ -35,7 +36,7 @@ Repository :
  optional arguments:
    -h, --help            show this help message and exit
 
-SSHKey :
+SSHKey ::
 
  usage: blih sshkey [-h] {upload,list,delete} ...
  
