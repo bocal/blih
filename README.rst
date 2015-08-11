@@ -6,12 +6,12 @@ Script for using the bocal api (BLIH).
 Usage:
 
  usage: blih [-h] [-u USER] [-t TOKEN] [-v] {repository,sshkey} ...
-
+ 
  positional arguments:
    {repository,sshkey}   The main command
      repository          Manage your repository
      sshkey              Manage your sshkey
-
+ 
  optional arguments:
    -h, --help            show this help message and exit
    -u USER, --user USER  The user
@@ -22,7 +22,7 @@ Usage:
 Repository :
 
  usage: blih repository [-h] {create,delete,info,list,getacl,setacl} ...
-
+ 
  positional arguments:
     {create,delete,info,list,getacl,setacl}
                         The subcommand
@@ -32,7 +32,7 @@ Repository :
      list                Get the list of your repositories
      getacl              Manage repository acls
      setacl              Get repository acls
-
+ 
  optional arguments:
    -h, --help            show this help message and exit
 
