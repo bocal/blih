@@ -37,7 +37,7 @@ import hmac
 import hashlib
 import json
 import getpass
-import urllib
+import urllib.parse
 import logging
 
 __version__ = '1.7'
@@ -49,12 +49,6 @@ def sign_data(user, token, data=None):
     """
     Calculate the signature
     """
-    if token == None:
-        try:
-            token = hashlib.sha512(bytes(getpass.getpass(), 'utf8')).hexdigest()
-        except KeyboardInterrupt:
-            sys.exit(1)
-
     signature = hmac.new(bytes(token, 'utf8'), msg=bytes(user, 'utf8'), digestmod=hashlib.sha512)
     signed_data = {}
 
@@ -109,143 +103,143 @@ def blih(method, resource, user, token, data):
 
     return data
 
-def repository_create(args):
+def repository_create(user, token, name, **kwargs):
     """
     Create a repository
     """
     data = blih(
         'post',
         '/repositories',
-        args['user'],
-        args['token'],
-        {'name' : args['name'], 'type' : 'git'}
+        user,
+        token,
+        {'name' : name, 'type' : 'git'}
     )
 
     if data['message']:
         print(data['message'])
 
 
-def repository_delete(args):
+def repository_delete(user, token, name, **kwargs):
     """
     Delete a repository
     """
     data = blih(
         'delete',
-        '/repository/' + args['name'],
-        args['user'],
-        args['token'],
+        '/repository/' + name,
+        user,
+        token,
         None
     )
 
     if data['message']:
         print(data['message'])
 
-def repository_info(args):
+def repository_info(user, token, name, **kwargs):
     """
     Get some info about a repository
     """
     data = blih(
         'get',
-        '/repository/' + args['name'],
-        args['user'],
-        args['token'],
+        '/repository/' + name,
+        user,
+        token,
         None
     )
 
     for key, value in data['message'].items():
         print(key, ':', value)
 
-def repository_list(args):
+def repository_list(user, token, **kwargs):
     """
     List the users repositories
     """
     data = blih(
         'get',
         '/repositories',
-        args['user'],
-        args['token'],
+        user,
+        token,
         None
     )
 
     for repo in data['repositories']:
         print(repo)
 
-def repository_getacl(args):
+def repository_getacl(user, token, name, **kwargs):
     """
     Get the defined acls for one repo
     """
     data = blih(
         'get',
-        '/repository/' + args['name'] + '/acls',
-        args['user'],
-        args['token'],
+        '/repository/' + name + '/acls',
+        user,
+        token,
         None
     )
 
     for key, value in data.items():
         print(key, ':', value)
 
-def repository_setacl(args):
+def repository_setacl(user, token, name, user_acl, acl, **kwargs):
     """
     Set some acls on one repository
     """
     data = blih(
         'post',
-        '/repository/' + args['name'] + '/acls',
-        args['user'],
-        args['token'],
-        data={'user' : args['user_acl'], 'acl' : args['acl']}
+        '/repository/' + name + '/acls',
+        user,
+        token,
+        data={'user' : user_acl, 'acl' : acl}
     )
 
     if data['message']:
         print(data['message'])
 
-def sshkey_upload(args):
+def sshkey_upload(user, token, keyfile, **kwargs):
     """
     Upload a new sshkey
     """
     try:
-        handle = open(args['keyfile'], 'r')
+        handle = open(keyfile, 'r')
     except (PermissionError, FileNotFoundError):
-        print("Can't open file : " + args['keyfile'])
+        print("Can't open file : " + keyfile)
         sys.exit(1)
     key = urllib.parse.quote(handle.read().strip('\n'))
     handle.close()
     data = blih(
         'post',
         '/sshkeys',
-        args['user'],
-        args['token'],
+        user,
+        token,
         {'sshkey' : key}
     )
 
     if data['message']:
         print(data['message'])
 
-def sshkey_list(args):
+def sshkey_list(user, token, **kwargs):
     """
     List the sshkeys
     """
     data = blih(
         'get',
         '/sshkeys',
-        args['user'],
-        args['token'],
+        user,
+        token,
         None
     )
 
     for comment, key in data.items():
         print(key, comment)
 
-def sshkey_delete(args):
+def sshkey_delete(user, token, comment, **kwargs):
     """
     Delete a sshkey
     """
     data = blih(
         'delete',
-        '/sshkey/' + args['comment'],
-        args['user'],
-        args['token'],
+        '/sshkey/' + comment,
+        user,
+        token,
         None
     )
 
@@ -262,11 +256,12 @@ def main():
     parser.add_argument(
         '-u', '--user',
         help='The user',
-        default=getpass.getuser()
+        default=os.environ.get('BLIH_USER', getpass.getuser())
     )
     parser.add_argument(
         '-t', '--token',
         help='Specify the token on the command line',
+        default=os.environ.get('BLIH_TOKEN', None)
     )
     parser.add_argument(
         '-v', '--verbose',
@@ -380,4 +375,10 @@ def main():
         format='[%(levelname)s] : %(message)s'
     )
 
-    argument.func(vars(argument))
+    if argument.token == None:
+        try:
+            argument.token = hashlib.sha512(bytes(getpass.getpass(), 'utf8')).hexdigest()
+        except KeyboardInterrupt:
+            sys.exit(1)
+
+    argument.func(**vars(argument))
