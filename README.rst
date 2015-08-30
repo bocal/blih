@@ -1,6 +1,8 @@
 BLIH - Bocal Lightweight Interface for Humans
 =============================================
 
+|build-status|
+
 Script for using the bocal api (BLIH).
 
 Usage::
@@ -48,3 +50,7 @@ SSHKey ::
  
  optional arguments:
    -h, --help            show this help message and exit
+
+
+.. |build-status| image:: https://circleci.com/gh/bocal/blih.svg?&style=shield
+   :target: https://circleci.com/gh/bocal/blih
