@@ -1,3 +1,8 @@
 machine:
   python:
     version: 2.7.9
+
+test:
+  pre:
+    - pyenv global 2.7.9 3.4.2
+    - pyenv versions
