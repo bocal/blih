@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 #-
 # Copyright 2013-2015 Emmanuel Vadot <elbarto@bocal.org>
@@ -29,224 +30,207 @@
 Bocal Lightweight Interface for Humans
 """
 
+from __future__ import print_function
+
 import sys
 import os
 
 from argparse import ArgumentParser
-import hmac
-import hashlib
-import json
 import getpass
-import urllib.parse
-import logging
 
-__version__ = '1.7'
+__version__ = '2.0'
 
 USER_AGENT = 'blih-' + __version__
-URL = 'https://blih.epitech.eu'
+API_VERSION = '2.0'
+URL = 'https://blih.epitech.eu/' + API_VERSION
 
-def sign_data(user, token, data=None):
+class BlihError(Exception):
     """
-    Calculate the signature
+    Base exception class
     """
-    signature = hmac.new(bytes(token, 'utf8'), msg=bytes(user, 'utf8'), digestmod=hashlib.sha512)
-    signed_data = {}
+    pass
 
-    if data:
-        json_data = json.dumps(data, sort_keys=True, indent=4, separators=(',', ': '))
-        signature.update(bytes(json_data, 'utf8'))
-        signed_data['data'] = data
-
-    signed_data['user'] = user
-    signed_data['signature'] = signature.hexdigest()
-
-    return signed_data
-
-def blih(method, resource, user, token, data):
+def blih(method, resource, auth, data=None):
     """
     Wrapper around requests
     """
-    logger = logging.getLogger('blih')
     try:
         import requests
     except ImportError:
-        logger.critical('requests is required.')
-        sys.exit(1)
-
+        raise
     try:
         requests_method = getattr(requests, method)
         req = requests_method(
             URL + resource,
-            headers={'User-Agent' : USER_AGENT, 'Content-Type' : 'application/json'},
-            data=json.dumps(
-                sign_data(
-                    user,
-                    token,
-                    data=data
-                )
-            )
+            auth=auth,
+            headers={'User-Agent' : USER_AGENT},
+            data=data
         )
-        data = req.json()
+        if req.status_code != 204:
+            data = req.json()
     except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
-        logger.critical('Can\'t connect to %s', URL)
-        sys.exit(1)
+        raise BlihError('Can\'t connect to {0}'.format(URL))
     except requests.exceptions.HTTPError:
-        logger.critical('An HTTP Error occured')
-        sys.exit(1)
+        raise BlihError('An HTTP Error occured')
+    except ValueError:
+        raise BlihError('Unknown Error')
 
-    if req.status_code != 200:
-        try:
-            logger.critical(data['error'])
-        except KeyError:
-            logger.critical('Unknown error')
-        sys.exit(1)
+    if req.status_code in [400, 401, 403, 404, 405, 409]:
+        raise BlihError(data['message'])
 
     return data
 
-def repository_create(user, token, name, **kwargs):
+# pylint: disable=unused-argument
+def repository_create(user, password, name, **kwargs):
     """
     Create a repository
     """
     data = blih(
         'post',
         '/repositories',
-        user,
-        token,
-        {'name' : name, 'type' : 'git'}
+        (user, password),
+        data={'name' : name, 'type' : 'git'}
     )
 
-    if data['message']:
-        print(data['message'])
+    return {data : data}
 
-
-def repository_delete(user, token, name, **kwargs):
+# pylint: disable=unused-argument
+def repository_delete(user, password, name, **kwargs):
     """
     Delete a repository
     """
     data = blih(
         'delete',
         '/repository/' + name,
-        user,
-        token,
-        None
+        (user, password)
     )
 
-    if data['message']:
-        print(data['message'])
+    return {data : data}
 
-def repository_info(user, token, name, **kwargs):
+# pylint: disable=unused-argument
+def repository_info(user, password, name, **kwargs):
     """
     Get some info about a repository
     """
     data = blih(
         'get',
         '/repository/' + name,
-        user,
-        token,
-        None
+        (user, password)
     )
 
-    for key, value in data['message'].items():
-        print(key, ':', value)
+    return {data : data}
 
-def repository_list(user, token, **kwargs):
+# pylint: disable=unused-argument
+def repository_list(user, password, **kwargs):
     """
     List the users repositories
     """
     data = blih(
         'get',
         '/repositories',
-        user,
-        token,
-        None
+        (user, password)
     )
 
-    for repo in data['repositories']:
-        print(repo)
+    return {data : data}
 
-def repository_getacl(user, token, name, **kwargs):
+# pylint: disable=unused-argument
+def repository_getacl(user, password, name, **kwargs):
     """
     Get the defined acls for one repo
     """
     data = blih(
         'get',
         '/repository/' + name + '/acls',
-        user,
-        token,
-        None
+        (user, password)
     )
 
-    for key, value in data.items():
-        print(key, ':', value)
+    return {data : data}
 
-def repository_setacl(user, token, name, user_acl, acl, **kwargs):
+# pylint: disable=unused-argument
+def repository_setacl(user, password, name, user_acl, acl, **kwargs):
     """
     Set some acls on one repository
     """
     data = blih(
         'post',
         '/repository/' + name + '/acls',
-        user,
-        token,
+        (user, password),
         data={'user' : user_acl, 'acl' : acl}
     )
 
-    if data['message']:
-        print(data['message'])
+    return {data : data}
 
-def sshkey_upload(user, token, keyfile, **kwargs):
+# pylint: disable=unused-argument
+def sshkey_upload(user, password, keyfile, **kwargs):
     """
     Upload a new sshkey
     """
     try:
         handle = open(keyfile, 'r')
     except (PermissionError, FileNotFoundError):
-        print("Can't open file : " + keyfile)
-        sys.exit(1)
-    key = urllib.parse.quote(handle.read().strip('\n'))
+        raise
+
+    keydata = handle.read().strip('\n')
     handle.close()
+
+    try:
+        keytype, key, comment = keydata.split(' ')
+    except ValueError:
+        raise
+
     data = blih(
         'post',
         '/sshkeys',
-        user,
-        token,
-        {'sshkey' : key}
+        (user, password),
+        data={'key' : keytype + ' ' + key, 'comment' : comment}
     )
 
-    if data['message']:
-        print(data['message'])
+    return {'data' : data,
+            'format' : '{key} {comment}'}
 
-def sshkey_list(user, token, **kwargs):
+# pylint: disable=unused-argument
+def sshkey_list(user, password, **kwargs):
     """
     List the sshkeys
     """
     data = blih(
         'get',
         '/sshkeys',
-        user,
-        token,
-        None
+        (user, password)
     )
 
-    for comment, key in data.items():
-        print(key, comment)
+    return {'data' : data,
+            'format' : '{key} {comment}'}
 
-def sshkey_delete(user, token, comment, **kwargs):
+# pylint: disable=unused-argument
+def sshkey_get(user, password, comment, **kwargs):
+    """
+    Get a sshkey
+    """
+    data = blih(
+        'get',
+        '/sshkeys/' + comment,
+        (user, password)
+    )
+
+    return {'data' : data,
+            'format' : '{key} {comment}'}
+
+# pylint: disable=unused-argument
+def sshkey_delete(user, password, comment, **kwargs):
     """
     Delete a sshkey
     """
     data = blih(
         'delete',
-        '/sshkey/' + comment,
-        user,
-        token,
-        None
+        '/sshkeys/' + comment,
+        (user, password)
     )
 
-    if data['message']:
-        print(data['message'])
+    return {'data' : data,
+            'format' : ''}
 
-#pylint: disable=R0914
+#pylint: disable=R0914,too-many-statements
 def main():
     """
     Main entry point
@@ -259,15 +243,9 @@ def main():
         default=os.environ.get('BLIH_USER', getpass.getuser())
     )
     parser.add_argument(
-        '-t', '--token',
-        help='Specify the token on the command line',
-        default=os.environ.get('BLIH_TOKEN', None)
-    )
-    parser.add_argument(
-        '-v', '--verbose',
-        help='Increase the verbosity level',
-        action='count',
-        default=0
+        '-t', '--password',
+        help='Specify the password on the command line',
+        default=os.environ.get('BLIH_PASSWORD', None)
     )
 
     subparser = parser.add_subparsers(dest='command', help='The main command')
@@ -356,6 +334,13 @@ def main():
     )
     parser_sshkey_list.set_defaults(func=sshkey_list)
 
+    parser_sshkey_get = subparser_sshkey.add_parser(
+        'get',
+        help='Get a sshkey'
+    )
+    parser_sshkey_get.add_argument('comment', help='The sshkey comment')
+    parser_sshkey_get.set_defaults(func=sshkey_get)
+
     parser_sshkey_delete = subparser_sshkey.add_parser(
         'delete',
         help='Delete a sshkey'
@@ -365,20 +350,21 @@ def main():
 
     argument = parser.parse_args()
 
-    if argument.verbose >= 5:
-        argument.verbose = 4
-
-    logging_level = int(50 - argument.verbose * 10)
-    logging.basicConfig(
-        stream=sys.stderr,
-        level=logging_level,
-        format='[%(levelname)s] : %(message)s'
-    )
-
-    if argument.token == None:
+    if argument.password == None:
         try:
-            argument.token = hashlib.sha512(bytes(getpass.getpass(), 'utf8')).hexdigest()
+            argument.password = getpass.getpass()
         except KeyboardInterrupt:
             sys.exit(1)
 
-    argument.func(**vars(argument))
+    try:
+        ret = argument.func(**vars(argument))
+    except BlihError as err:
+        print('Error: {0}'.format(err))
+        sys.exit(1)
+
+    if ret['data']:
+        if isinstance(ret['data'], list):
+            for item in ret['data']:
+                print(ret['format'].format(**item))
+        elif isinstance(ret['data'], dict):
+            print(ret['format'].format(**ret['data']))
