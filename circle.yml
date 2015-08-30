@@ -7,6 +7,6 @@ test:
     - pyenv global 2.7.9 3.3.3 3.4.3
     - pyenv versions
   post:
-    - python setup.py bdist_wheel
+    - python3 setup.py bdist_wheel
     - >
       cp dist/*.whl ${CIRCLE_ARTIFACTS}
