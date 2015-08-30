@@ -167,8 +167,8 @@ def sshkey_upload(user, password, keyfile, **kwargs):
     """
     try:
         handle = open(keyfile, 'r')
-    except OSError:
-        raise
+    except (OSError, IOError):
+        raise BlihError('File {0} not found'.format(keyfile))
 
     keydata = handle.read().strip('\n')
     handle.close()
